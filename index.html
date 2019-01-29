@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<head>
+    <title>Dropdown</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        .project {display: none;}
+        .show {display: block;}
+    </style>
+    <script>
+
+
+        // Arrays für die select optionen
+        var sectionNameArray = [];
+        //  var territoryNameArray = [];
+
+        // Speichern der select optionen Texte
+        function generateNameArrays(selectID, arrayToCreate) {
+            var selectObject = document.getElementById(selectID);
+            for (i = 1; i < selectObject.length; i++) {
+                arrayToCreate.push(selectObject.options[i].text);
+            }
+        }
+        //
+        function generateSectionSelect(currSection) {
+
+            var sectionDiv = document.getElementById("sections");
+            var currTerritory = document.getElementById("territories").selectedIndex;
+            var currTerritoryText = document.getElementById('territories').options[currTerritory].text;
+
+            //Territories select option löschen, ausser dem ersten  (ACHTUNG auf Linebreaks im HTML)
+            while (sectionDiv.childNodes.length > 1) {
+                sectionDiv.removeChild(sectionDiv.lastChild);
+            }
+            var sectionsArray = [];
+            var x = document.getElementsByClassName("project");
+            for (i = 0; i < x.length; i++) {
+                if (x[i].dataset.territory.indexOf(currTerritoryText) !== -1 || currTerritory === 0) {
+                    sectionsArray.push(x[i].dataset.projects);
+                }
+            }
+            sectionsArray.sort();
+            var singleArray = [];
+            
+            //Create and append the options
+            for (var i = 0; i < sectionsArray.length; i++) {
+
+                // Optionen zerlegen wenn ein Projekt mehr wie eine Sektion hat
+                if (sectionsArray[i].length > 1) {
+                    var val = sectionsArray[i].split(",");
+                    val.forEach(function (obj) {
+                        sectionsArray.push(parseInt(obj));
+                    });
+                    sectionsArray.splice(i, 1);
+                }
+            }
+            console.log(sectionsArray);
+            // String in Integer umwandel
+            for (var i = 0, len = sectionsArray.length; i < len; i++) {
+                sectionsArray[i] = parseInt(sectionsArray[i], 10);
+            }
+
+            // Neuen Array ohne doppelte Einträge
+            for (var n = 0; n < sectionsArray.length; n++) {
+                if (singleArray.indexOf(sectionsArray[n]) === -1) {
+                    singleArray.push(parseInt(sectionsArray[n]));
+                }
+            }
+            
+            // Optionen selection erzeugen
+            for (var id = 0; id < singleArray.length; id++) {
+                var option = document.createElement("option");
+                option.value = singleArray[id];
+                option.text = sectionNameArray[option.value - 1];
+                sectionDiv.appendChild(option);
+            }
+            document.getElementById("sections").value = currSection;
+        }
+
+
+        function generateTerritorySelect(currTerritory) {
+            var myDiv = document.getElementById("territories");
+            var currSection = document.getElementById("sections").value;
+            // Territories select option löschen, ausser dem ersten (Auchtung bei LINEBREAKS im HTML
+            while (myDiv.childNodes.length > 1) {
+                myDiv.removeChild(myDiv.lastChild);
+            }
+
+            var territoriesArray = [];
+            // Liste mit allen Gebieten erzeugen
+            var x = document.getElementsByClassName("project");
+            for (i = 0; i < x.length; i++) {
+                if ((x[i].dataset.projects).indexOf(currSection) !== -1 || currSection === "all") {
+
+                    if (territoriesArray.indexOf(x[i].dataset.territory) === -1) {
+                        territoriesArray.push(x[i].dataset.territory);
+                    }
+
+                }
+            }
+
+            territoriesArray.sort();
+            //Create and append the options
+            for (var i = 0; i < territoriesArray.length; i++) {
+                var option = document.createElement("option");
+                option.value = territoriesArray[i];
+                option.text = territoriesArray[i];
+                myDiv.appendChild(option);
+            }
+            if (currTerritory !== "all") {
+                document.getElementById("territories").value = currTerritory;
+            }
+        }
+
+
+
+        function filterSelection(c) {
+            //document.getElementById("sections").selectedIndex = 0;
+            var x, i, c;
+            x = document.getElementsByClassName("project");
+            var currTerritory = document.getElementById("territories").value;
+            if (typeof c === 'undefined') {
+                c = document.getElementById("sections").value;
+            } else {
+                document.getElementById("sections").selectedIndex = 0;
+            }
+            if (c === "all") {
+                c = "";
+            }
+            for (i = 0; i < x.length; i++) {
+                removeClass(x[i], "show");
+
+                if (x[i].dataset.projects.indexOf(c) > -1 && currTerritory === "all") {
+                    addClass(x[i], "show");
+                } else if (x[i].dataset.projects.indexOf(c) > -1 && x[i].dataset.territory.indexOf(currTerritory) > -1) {
+                    addClass(x[i], "show");
+                }
+
+                //setOffset();
+                generateTerritorySelect(currTerritory);
+            }
+        }
+
+        function filterTerritory(c) {
+            var x, i, c;
+            x = document.getElementsByClassName("project");
+            var currSection = document.getElementById("sections").value;
+            var currTerritory = document.getElementById("territories").value;
+            if (typeof c === 'undefined') {
+                c = document.getElementById("territories").value;
+            } else {
+                document.getElementById("territories").selectedIndex = 0;
+            }
+            if (c === "all") {
+                c = "";
+            }
+            for (i = 0; i < x.length; i++) {
+                removeClass(x[i], "show");
+                // PROBLEM mit ALL bei den SECTIONS && x[i].dataset.projects.indexOf(currSection) > -1
+                /*if (x[i].dataset.territory.indexOf(c) > -1) {
+                    if (x[i].dataset.projects.indexOf(currSection) > -1 || currSection === "all") {
+
+                        addClass(x[i], "show");
+                    }
+                }*/
+            
+                if (x[i].dataset.territory.indexOf(c) > -1 && currSection === "all") {
+                    addClass(x[i], "show");
+                } else if (x[i].dataset.territory.indexOf(c) > -1 && x[i].dataset.projects.indexOf(currSection) > -1) {
+                    addClass(x[i], "show");
+                }
+            
+            
+            }
+            //setOffset();
+            generateSectionSelect(currSection);
+        }
+
+        function resetFilter() {
+            filterSelection("all");
+            filterTerritory("all");
+        }
+
+
+        function addClass(element, name) {
+            var i, arr1, arr2;
+            arr1 = element.className.split(",");
+            arr2 = name.split(" ");
+            for (i = 0; i < arr2.length; i++) {
+                if (arr1.indexOf(arr2[i]) === -1) {
+                    element.className += " " + arr2[i];
+                }
+            }
+        }
+        function removeClass(element, name) {
+            var i, arr1, arr2;
+            arr1 = element.className.split(" ");
+            arr2 = name.split(" ");
+            for (i = 0; i < arr2.length; i++) {
+                while (arr1.indexOf(arr2[i]) > -1) {
+                    arr1.splice(arr1.indexOf(arr2[i]), 1);
+                }
+            }
+            element.className = arr1.join(" ");
+        }
+
+        window.onload = function () {
+            generateTerritorySelect("all");
+            generateNameArrays("sections", sectionNameArray);
+        }
+
+    </script>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS" crossorigin="anonymous">
+    <link rel="stylesheet" type="text/css" href="https://use.fontawesome.com/releases/v5.6.3/css/all.css" media="all">
+</head>
+<body>
+    <div class="container">
+        <div class="row mt-5 mb-1">
+            <div class="col-12 col-md-4 mb-1 mb-md-5">
+                <select onchange="filterSelection()" id="sections" class="text-center custom-select"><option value="all" selected>All sections</option><option value="1">Water</option><option value="2">Energy</option><option value="3">Environment</option></select>
+            </div>
+            <div class="col-12 col-md-4 mb-1 mb-mb-5">
+                <select onchange="filterTerritory()" id="territories" class="text-center custom-select"><option value="all">All territories</option></select>
+            </div>
+            <div class="col-12 col-md-4 mb-1 mb-mb-5">
+                <button class="btn btn-primary btn-block" onclick="resetFilter()"><i class="fas fa-trash"></i>  Reset</button>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-12 col-md-4 project show" data-projects="1" data-territory="North America">
+                <div class="card p-3 mb-3"><h3>Project 0</h3>
+                    <span>Water, North America</span>
+                </div>
+            </div>
+            <div class="col-12 col-md-4 project show" data-projects="1" data-territory="Western Europe">
+                <div class="card p-3 mb-3"><h3>Project 1</h3>
+                    <span>Water, Western Europe</span>
+                </div>
+            </div>
+            <div class="col-12 col-md-4 project show" data-projects="2" data-territory="Asia">
+                <div class="card p-3 mb-3"><h3>Project 2</h3>
+                    <span>Energy, Asia</span>
+                </div>
+            </div>
+            <div class="col-12 col-md-4 project show" data-projects="3" data-territory="North America">
+                <div class="card p-3 mb-3"><h3>Project 3</h3>
+                    <span>Environment, North America</span>
+                </div>
+            </div>
+            <div class="col-12 col-md-4 project show" data-projects="1,2" data-territory="South America">
+                <div class="card p-3 mb-3"><h3>Project 4</h3>
+                    <span>Water & Energy, South America</span>
+                </div>
+            </div>
+            <div class="col-12 col-md-4 project show" data-projects="3" data-territory="Western Europe">
+                <div class="card p-3 mb-3"><h3>Project 5</h3>
+                    <span>Environment, Western Europe</span>
+                </div>
+            </div>
+            <div class="col-12 col-md-4 project show" data-projects="2,3" data-territory="Asia">
+                <div class="card p-3 mb-3"><h3>Project 6</h3>
+                    <span>Energy & Environment, Asia</span>
+                </div>
+            </div>
+            <div class="col-12 col-md-4 project show" data-projects="3" data-territory="Asia">
+                <div class="card p-3 mb-3"><h3>Project 7</h3>
+                    <span>Environment, Asia</span>
+                </div>
+            </div>
+            <div class="col-12 col-md-4 project show" data-projects="2,3" data-territory="Balkan">
+                <div class="card p-3 mb-3"><h3>Project 8</h3>
+                    <span>Energy & Environment, Balkan</span>
+                </div>
+            </div>
+            <div class="col-12 col-md-4 project show" data-projects="3" data-territory="Asia">
+                <div class="card p-3 mb-3"><h3>Project 9</h3>
+                    <span>Environment, Asia</span>
+                </div>
+            </div>
+            <div class="col-12 col-md-4 project show" data-projects="1,2,3" data-territory="Asia">
+                <div class="card p-3 mb-3"><h3>Project 10</h3>
+                    <span>Water, Energy & Environment, Asia</span>
+                </div>
+            </div>
+            <div class="col-12 col-md-4 project show" data-projects="1" data-territory="South America">
+                <div class="card p-3 mb-3"><h3>Project 11</h3>
+                    <span>Water, South America</span>
+                </div>
+            </div>
+            <div class="col-12 col-md-4 project show" data-projects="3" data-territory="Africa">
+                <div class="card p-3 mb-3"><h3>Project 12</h3>
+                    <span>Environment, Africa</span>
+                </div>
+            </div>
+        </div>
+
+
+    </div>
+</body>
+</html>
